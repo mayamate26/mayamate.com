@@ -79,10 +79,10 @@
   function find(cat, raw) {
     var q = norm(raw), name = String(raw || "").trim().toLowerCase(), i;
     for (i = 0; i < cat.brands.length; i++) if (cat.brands[i].domain === q) return cat.brands[i];
-    if (name.length < 4) return null;
+    if (!name) return null;
     var pools = [cat.brands, cat.top];
     for (var p = 0; p < pools.length; p++)
-      for (i = 0; i < pools[p].length; i++) if (pools[p][i].name.toLowerCase().indexOf(name) !== -1) return pools[p][i];
+      for (i = 0; i < pools[p].length; i++) if (pools[p][i].name.toLowerCase() === name) return pools[p][i];
     return null;
   }
   // Rank follows the published page: a name the page left off above its last row is not ranked at all.
@@ -108,9 +108,9 @@
       var r = rank(cat, hit);
       if (r) out.appendChild(el("p", hit.name + " ranks #" + r.place + " of " + r.of + " names counted in " + cat.title + ".", {"class": "meta"}));
     } else {
-      out.appendChild(el("p", "Not named in any of " + cat.answers + " answers.", {"class": "verdict"}));
+      out.appendChild(el("p", "No exact match in this published dataset. This does not establish whether your business was named in the recorded answers. Try your full business name or website, or ask Maya to check the original answers.", {"class": "verdict"}));
     }
-    out.appendChild(el("h2", "Who is named instead"));
+    out.appendChild(el("h2", "Businesses named in this sample"));
     var list = el("ol");
     cat.top.forEach(function (b) { list.appendChild(el("li", b.name + " — " + b.answers + " of " + cat.answers + " answers (" + pct(b.share) + ")")); });
     out.appendChild(list);
