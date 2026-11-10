@@ -1,11 +1,11 @@
 {
- "updated": "2026-11-08T22:00:31-05:00",
+ "updated": "2026-11-09T22:00:48-05:00",
  "revenue_total": 61.0,
  "revenue_30d": 61.0,
- "costs_30d": 161.82,
- "net_30d": -100.82,
- "costs_total": 372.83,
- "net_total": -311.83,
+ "costs_30d": 159.19,
+ "net_30d": -98.19,
+ "costs_total": 376.5,
+ "net_total": -315.5,
  "self_sustaining_target": "2026-11-20",
  "mrr": 0,
  "self_sustaining": true,
@@ -13,5 +13,5 @@
  "users": 0,
  "list_size": 0,
  "products": 1,
- "days_alive": 47
+ "days_alive": 48
 }
