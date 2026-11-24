@@ -152,6 +152,13 @@
       });
       t.appendChild(tb); out.appendChild(t);
     }
+    if ((res.not_checked || []).length) {
+      out.appendChild(el("h2", "Not checked"));
+      if (res.coverage_note) out.appendChild(el("p", res.coverage_note, {"class": "meta"}));
+      var ul = el("ul");
+      res.not_checked.forEach(function (u) { ul.appendChild(el("li", u.sentence || "")); });
+      out.appendChild(ul);
+    }
     if (res.id) {
       out.appendChild(el("h2", "Share"));
       out.appendChild(copyRow("Report link", res.share_url));
