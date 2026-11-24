@@ -33,6 +33,7 @@
   <h1>Check every number in an AI-written document against its source.</h1>
   <p class="lede">Paste the document and up to three sources. ClaimTrace finds every number, checks it against the sources, and quotes the exact sentence each verdict rests on — so you can see which figures hold up before you publish.</p>
 
+  <p class="small"><button type="button" id="ct-example">Load an example</button> fills in a short demo draft and its source (one number is deliberately wrong), so you can see a ledger in 30 seconds.</p>
   <form id="ct-form" class="check-form ct-form">
     <label for="ct-document">Document (AI-written text)</label>
     <textarea id="ct-document" name="document" rows="10" maxlength="30000" required placeholder="Paste the text whose numbers you want checked (up to 30,000 characters)."></textarea>
@@ -74,6 +75,17 @@
   <p class="small">Per-case results: <a href="/guides/claimbench/">ClaimBench</a>.</p>
   <p class="small"><strong>Data:</strong> Not stored unless you choose to share. Shared reports deleted after 30 days. Don't paste personal data.</p>
 
+  <section id="agents" class="ct-agents">
+    <h2>Use it from your agent, terminal or CI</h2>
+    <p>Same checker, same free allowance, no key needed to start.</p>
+    <ul class="listing">
+      <li><strong>Remote MCP server:</strong> <code>https://claimtrace-api.fly.dev/mcp</code> — one tool, <code>check_numbers</code>. Claude Code: <code>claude mcp add --transport http claimtrace https://claimtrace-api.fly.dev/mcp</code></li>
+      <li><strong>CLI and local MCP (MIT):</strong> <code>uvx --from git+https://github.com/mayamate26/claimtrace claimtrace check report.md --source https://…</code></li>
+      <li><strong>GitHub Action:</strong> comments a claim ledger on pull requests that change docs. <a href="https://github.com/mayamate26/claimtrace">Source and setup on GitHub →</a></li>
+      <li><strong>Listed in:</strong> the official MCP registry (<code>com.mayamate/claimtrace</code>), <a href="https://glama.ai/mcp/servers/mayamate26/claimtrace">Glama</a>, <a href="https://mcpservers.org/servers/mayamate26/claimtrace">mcpservers.org</a>, <a href="https://mcptry.com/servers/com.mayamate/claimtrace">mcptry</a>.</li>
+    </ul>
+  </section>
+
   <section id="pricing" class="ct-pricing">
     <h2>Pricing</h2>
     <ul class="listing">
@@ -108,6 +120,14 @@
     for (var k in attrs || {}) n.setAttribute(k, attrs[k]);
     return n;
   }
+  var EXAMPLE_DOC = "Acme Analytics had a strong third quarter. Revenue grew 21% year over year to $48.2 million, gross margin held at 61%, and the company now serves 1,340 customers.";
+  var EXAMPLE_SRC = "Acme Analytics (a fictional company used for this demo) - Q3 2026 results. Revenue was $48.2 million, up 12% from $43.0 million in Q3 2025. Gross margin was 61%, unchanged from the prior quarter. The company ended the quarter with 1,340 customers.";
+  document.getElementById("ct-example").addEventListener("click", function () {
+    doc.value = EXAMPLE_DOC; count.textContent = doc.value.length.toLocaleString();
+    var k = document.getElementById("ct-kind-1"), v = document.getElementById("ct-value-1");
+    k.value = "text"; v.rows = 6; v.placeholder = "Paste the source text"; v.value = EXAMPLE_SRC;
+    status.textContent = "Example loaded. Press \u201cCheck the numbers\u201d.";
+  });
   var CLS = {SUPPORTED: "ct-ok", MISMATCH: "ct-bad", UNSUPPORTED: "ct-warn", ERROR: "ct-warn"};
 
   function copyRow(labelText, value) {
@@ -209,7 +229,7 @@
       status.textContent = "";
       render(r.body);
     }).catch(function () {
-      status.textContent = "The free checker is opening this week and could not be reached just now. Try again later, or order a done-for-you audit below.";
+      status.textContent = "The checker could not be reached just now. Try again in a minute, or order a done-for-you audit below.";
     }).then(function () { btn.disabled = false; });
   });
 })();
