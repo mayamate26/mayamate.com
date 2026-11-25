@@ -33,6 +33,24 @@
   <h1>Check every number in an AI-written document against its source.</h1>
   <p class="lede">Paste the document and up to three sources. ClaimTrace finds every number, checks it against the sources, and quotes the exact sentence each verdict rests on — so you can see which figures hold up before you publish.</p>
 
+  <style>
+  .ct-sample caption { caption-side: bottom; text-align: left; color: var(--dim); font-size: 0.85rem; padding-top: 0.4rem; }
+  .ct-sample th, .ct-sample td { text-align: left; vertical-align: top; }
+  .ct-agentbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+  .ct-agentbar button { width: auto; cursor: pointer; }
+  </style>
+  <h2>What you get</h2>
+  <table class="ct-sample ct-table">
+    <caption>Sample ledger from the demo draft (fictional company). Run it yourself: Load an example → Check the numbers.</caption>
+    <thead><tr><th>Number</th><th>Verdict</th><th>Evidence (quoted source sentence)</th></tr></thead>
+    <tbody>
+      <tr><td data-h="Number">$48.2 million</td><td data-h="Verdict"><span class="ct-ok">✓ SUPPORTED</span></td><td data-h="Evidence">“Revenue was $48.2 million, up from $43.0 million in Q3 2025.”</td></tr>
+      <tr><td data-h="Number">61%</td><td data-h="Verdict"><span class="ct-ok">✓ SUPPORTED</span></td><td data-h="Evidence">“Gross margin was 61%, unchanged from the prior quarter.”</td></tr>
+      <tr><td data-h="Number">1,430 customers</td><td data-h="Verdict"><span class="ct-bad">✗ MISMATCH</span> — source says 1,340</td><td data-h="Evidence">“The company ended the quarter with 1,340 customers.”</td></tr>
+    </tbody>
+  </table>
+  <p class="small ct-agentbar">Using an agent? <code id="ct-agent-cmd">claude mcp add --transport http claimtrace https://claimtrace-api.fly.dev/mcp</code> <button type="button" id="ct-agent-copy" data-placement="agent_bar">Copy</button> <a href="#agents">More ways ↓</a></p>
+
 <div class="ct-checker" data-placement="claimtrace">
   <p class="small"><button type="button" id="ct-example">Load an example</button> fills in a short demo draft and its source (one number is deliberately wrong), so you can see a ledger in 30 seconds.</p>
   <form id="ct-form" class="check-form ct-form" novalidate>
@@ -122,6 +140,17 @@
     });
   }
   var PRESET = "";
+  // Agent bar above the form (claimtrace.html): copy the MCP install command; placement "agent_bar".
+  (function () {
+    var b = document.getElementById("ct-agent-copy"), cmd = document.getElementById("ct-agent-cmd");
+    if (!b || !cmd) return;
+    b.addEventListener("click", function () {
+      var value = cmd.textContent;
+      ev("ct_copy_clicked", {which: "mcp_command", placement: "agent_bar"});
+      (navigator.clipboard ? navigator.clipboard.writeText(value) : Promise.reject()).then(
+        function () { b.textContent = "Copied"; }, function () { b.textContent = "Select and copy"; });
+    });
+  })();
   // ?preset=<name>: load a published finding from /claimtrace/presets/<name>.json so it can be re-run in one click.
   (function () {
     var name = new URLSearchParams(location.search).get("preset");
@@ -311,7 +340,7 @@
 </article>
 </main>
 <footer>
-  <p>Maya · AI visibility audits and the AI Recommendation Index · maya@mayamate.com</p>
+  <p>Maya · ClaimTrace — checks the numbers in AI-written documents · AI Recommendation Index · maya@mayamate.com</p>
   <p class="small"><a href="/products/">Product</a> · <a href="/ai-index/">Index</a> · <a href="/log/">Log</a> · <a href="/contact/">Contact</a> · <a href="/scoreboard.json">scoreboard.json</a></p>
 </footer>
 </body>
