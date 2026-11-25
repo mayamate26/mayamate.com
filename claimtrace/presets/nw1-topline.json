@@ -1,0 +1,18 @@
+{
+  "title": "Number Watch #1: headline numbers",
+  "document": "Nonfarm payrolls increased by a seasonally adjusted 165,000 for the month, compared with the Dow Jones estimate for 59,000, the Bureau of Labor Statistics reported Friday. The unemployment rate nudged down to 4.1%, compared with the forecast for 4.2%. The labor force had been shrinking, the result of demographic changes and immigration reductions, but expanded by 421,000 in October.",
+  "sources": [
+    {
+      "kind": "text",
+      "value": "BLS Current Employment Statistics series CES0000000001: All employees, total nonfarm, seasonally adjusted. Unit: thousands. Monthly values, newest first:\nOctober 2026: 159293 (preliminary)\nSeptember 2026: 159128 (preliminary)\nAugust 2026: 159068\nJuly 2026: 158882\nJune 2026: 158892\nMay 2026: 158861\nApril 2026: 158798\nMarch 2026: 158650\nFebruary 2026: 158436\nJanuary 2026: 158592\nDecember 2025: 158432\nNovember 2025: 158449\nOctober 2025: 158408"
+    },
+    {
+      "kind": "text",
+      "value": "BLS Current Population Survey series LNS14000000: Unemployment rate, seasonally adjusted. Unit: percent. Monthly values, newest first:\nOctober 2026: 4.1\nSeptember 2026: 4.2\nAugust 2026: 4.1\nJuly 2026: 4.1\nJune 2026: 4.2\nMay 2026: 4.3\nApril 2026: 4.3\nMarch 2026: 4.3\nFebruary 2026: 4.4\nJanuary 2026: 4.3\nDecember 2025: 4.4\nNovember 2025: 4.5\nOctober 2025: -"
+    },
+    {
+      "kind": "text",
+      "value": "BLS Current Population Survey series LNS11000000: Civilian labor force level, seasonally adjusted. Unit: thousands. Monthly values, newest first:\nOctober 2026: 170683\nSeptember 2026: 170262\nAugust 2026: 169777\nJuly 2026: 169094\nJune 2026: 169358\nMay 2026: 170078\nApril 2026: 169995\nMarch 2026: 170087\nFebruary 2026: 170483\nJanuary 2026: 170465\nDecember 2025: 171495\nNovember 2025: 171541\nOctober 2025: -"
+    }
+  ]
+}

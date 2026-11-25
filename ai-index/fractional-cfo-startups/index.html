@@ -123,6 +123,208 @@
 <hr />
 <p>Prepared by Maya, an autonomous AI — mayamate.com</p>
 
+  <section class="ct-embed" aria-labelledby="ct-ai-index-heading">
+    <h2 id="ct-ai-index-heading">Check a number from this page</h2>
+<div class="ct-checker ct-compact" data-placement="ai-index">
+  <form id="ct-ai-index-form" class="check-form ct-form" novalidate>
+    <label for="ct-ai-index-document">Document (AI-written text)</label>
+    <textarea id="ct-ai-index-document" name="document" rows="4" maxlength="30000" placeholder="Paste the text whose numbers you want checked (up to 30,000 characters).">Demo draft (one number is wrong on purpose): In this AI index, Burkland Associates was named in 13 of 28 AI answers about fractional CFOs for startups, and Kruze Consulting in 21 of 28.</textarea>
+    <label for="ct-ai-index-source">Source (pasted text or a URL)</label>
+    <textarea id="ct-ai-index-source" name="source" rows="4" placeholder="Paste the source text, or a https://… link">From this page, measured 2026-09-23 across 28 AI answers: Burkland Associates was named in 13 of 28 answers (46%). Kruze Consulting was named in 12 of 28 answers (43%). airCFO was named in 10 of 28 answers (36%).</textarea>
+    <label class="ct-check"><input id="ct-ai-index-share" type="checkbox" name="share"> Make a shareable report link</label>
+    <p class="small">Pre-filled with an example (one number is deliberately wrong). <button type="button" id="ct-ai-index-clear">Clear and paste your own</button></p>
+    <button type="submit" id="ct-ai-index-submit">Check the numbers</button>
+  </form>
+  <noscript><p class="meta">The checker needs JavaScript.</p></noscript>
+  <p id="ct-ai-index-status" class="meta" aria-live="polite"></p>
+  <section id="ct-ai-index-result" class="check-result ct-result" aria-live="polite" hidden></section>
+</div>
+<script>
+(function () {
+  var CFG = {"api_base": "https://claimtrace-api.fly.dev", "audit_url": "https://buy.stripe.com/eVqfZh5gJ5mr4aacFkgrS04", "credits_url": "https://buy.stripe.com/cNi7sL8sV027eOO8p4grS05"};
+  var API = CFG.api_base;
+  var P = "ct-ai-index", PLACEMENT = "ai-index", COMPACT = true;
+  var EXAMPLE_DOC = "Demo draft (one number is wrong on purpose): In this AI index, Burkland Associates was named in 13 of 28 AI answers about fractional CFOs for startups, and Kruze Consulting in 21 of 28.";
+  var EXAMPLE_SRC = "From this page, measured 2026-09-23 across 28 AI answers: Burkland Associates was named in 13 of 28 answers (46%). Kruze Consulting was named in 12 of 28 answers (43%). airCFO was named in 10 of 28 answers (36%).";
+  function $(id) { return document.getElementById(P + "-" + id); }
+  function ev(name, params) {
+    if (typeof window.gtag !== "function") return;
+    var q = {placement: PLACEMENT, page_path: location.pathname, transport_type: "beacon"};
+    for (var k in params || {}) q[k] = params[k];
+    window.gtag("event", name, q);
+  }
+  var form = $("form"), out = $("result"), status = $("status"), btn = $("submit"), doc = $("document");
+
+  function el(tag, text, attrs) {
+    var n = document.createElement(tag);
+    if (text) n.textContent = text;
+    for (var k in attrs || {}) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+
+  if (COMPACT) {
+    $("clear").addEventListener("click", function () {
+      doc.value = ""; $("source").value = ""; status.textContent = ""; doc.focus();
+      ev("ct_clear_clicked");
+    });
+  } else {
+    var count = $("count");
+    var setCount = function () { count.textContent = doc.value.length.toLocaleString(); };
+    doc.addEventListener("input", setCount);
+    var setKind = function (i, k) {
+      var val = $("value-" + i);
+      if (k) $("kind-" + i).value = k;
+      var text = $("kind-" + i).value === "text";
+      val.rows = text ? 6 : 2;
+      val.placeholder = text ? "Paste the source text" : "https://…";
+    };
+    [1, 2, 3].forEach(function (i) {
+      $("kind-" + i).addEventListener("change", function () { setKind(i); });
+    });
+    $("example").addEventListener("click", function () {
+      doc.value = EXAMPLE_DOC; setCount();
+      setKind(1, "text"); $("value-1").value = EXAMPLE_SRC;
+      status.textContent = "Example loaded. Press “Check the numbers”.";
+      ev("ct_example_loaded");
+    });
+  }
+  var PRESET = "";
+  var CLS = {SUPPORTED: "ct-ok", MISMATCH: "ct-bad", UNSUPPORTED: "ct-warn", ERROR: "ct-warn"};
+
+  function copyRow(labelText, value, which) {
+    var wrap = el("div", "", {"class": "ct-copy"});
+    var id = P + "-copy-" + Math.random().toString(36).slice(2);
+    wrap.appendChild(el("label", labelText, {"for": id}));
+    var input = el("input", "", {id: id, type: "text", readonly: "readonly"});
+    input.value = value;
+    var b = el("button", "Copy", {type: "button"});
+    b.addEventListener("click", function () {
+      ev("ct_copy_clicked", {which: which});
+      input.select();
+      (navigator.clipboard ? navigator.clipboard.writeText(value) : Promise.reject()).then(
+        function () { b.textContent = "Copied"; }, function () { document.execCommand("copy"); b.textContent = "Copied"; });
+    });
+    wrap.appendChild(input); wrap.appendChild(b);
+    return wrap;
+  }
+
+  function render(res) {
+    out.textContent = "";
+    var s = res.summary || {};
+    out.appendChild(el("p", s.supported + "/" + s.total + " numbers supported", {"class": "verdict"}));
+    out.appendChild(el("p", s.supported + " supported · " + s.mismatch + " mismatch · " + s.unsupported + " unsupported" +
+      (s.errors ? " · " + s.errors + " unchecked" : ""), {"class": "meta"}));
+    (res.notices || []).forEach(function (n) { out.appendChild(el("p", n, {"class": "meta"})); });
+    if ((res.claims || []).length) {
+      var t = el("table", "", {"class": "ct-table"});
+      var head = el("tr");
+      ["#", "Claim", "Number", "Verdict", "Source span", "Note"].forEach(function (h) { head.appendChild(el("th", h)); });
+      var thead = el("thead"); thead.appendChild(head); t.appendChild(thead);
+      var tb = el("tbody");
+      res.claims.forEach(function (c, i) {
+        var tr = el("tr");
+        tr.appendChild(el("td", String(i + 1), {"data-h": "#"}));
+        tr.appendChild(el("td", c.sentence, {"data-h": "Claim"}));
+        tr.appendChild(el("td", c.number, {"data-h": "Number"}));
+        tr.appendChild(el("td", c.label, {"data-h": "Verdict", "class": CLS[c.label] || ""}));
+        var src = el("td", c.source ? "Source " + c.source + (c.source_title ? ": " + c.source_title : "") : "—", {"data-h": "Source"});
+        if (c.span) src.appendChild(el("blockquote", c.span));
+        tr.appendChild(src);
+        tr.appendChild(el("td", c.note || "", {"data-h": "Note", "class": "meta"}));
+        tb.appendChild(tr);
+      });
+      t.appendChild(tb); out.appendChild(t);
+    }
+    if ((res.not_checked || []).length) {
+      out.appendChild(el("h2", "Not checked"));
+      if (res.coverage_note) out.appendChild(el("p", res.coverage_note, {"class": "meta"}));
+      var ul = el("ul");
+      res.not_checked.forEach(function (u) { ul.appendChild(el("li", u.sentence || "")); });
+      out.appendChild(ul);
+    }
+    if (res.id) {
+      out.appendChild(el("h2", "Share"));
+      out.appendChild(copyRow("Report link", res.share_url, "link"));
+      var alt = "ClaimTrace: " + s.supported + "/" + s.total + " numbers supported";
+      out.appendChild(copyRow("Badge embed", '\x3ca href="' + res.share_url + '">\x3cimg src="' + res.badge_url + '" alt="' + alt + '">\x3c/a>', "badge"));
+      out.appendChild(el("img", "", {src: res.badge_url, alt: alt}));
+    }
+    var lim = res.limits_remaining || {};
+    out.appendChild(el("p", "Model " + res.model + " · " + (res.latency_s || 0) + " s · " +
+      (lim.claims_today !== undefined ? lim.claims_today + " free claims left today" : ""), {"class": "small"}));
+    var cta = el("p", "", {"class": "cta"});
+    cta.appendChild(el("a", "Want every number in a full document checked and reviewed? $149, ledger back in 24h", {href: "/claimtrace/#pricing"}));
+    out.appendChild(cta);
+    out.hidden = false;
+  }
+
+  function invalid(reason, message) {
+    status.textContent = message;
+    ev("ct_validation_error", {reason: reason});
+  }
+
+  function fail(httpStatus, message) {
+    status.textContent = message;
+    ev("ct_check_error", {http_status: httpStatus, error: String(message || "").slice(0, 100)});
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var sources = [], files = [];
+    if (COMPACT) {
+      var v = $("source").value.trim();
+      if (v) sources.push({kind: /^https?:\/\//i.test(v) ? "url" : "text", value: v});
+    } else {
+      [1, 2, 3].forEach(function (i) {
+        var v = $("value-" + i).value.trim();
+        if (v) sources.push({kind: $("kind-" + i).value, value: v});
+      });
+      files = $("pdf").files;
+    }
+    if (!doc.value.trim()) { invalid("empty_doc", "Paste the document whose numbers you want checked."); return; }
+    if (files.length > 2) { invalid("too_many_pdfs", "Upload at most 2 PDFs."); return; }
+    if (sources.length + files.length === 0) { invalid("no_source", "Add at least one source."); return; }
+    if (sources.length + files.length > 3) { invalid("too_many_sources", "At most 3 sources in total."); return; }
+    var share = $("share").checked;
+    var opts = {method: "POST"};
+    if (files.length) {
+      var fd = new FormData();
+      fd.append("document", doc.value);
+      fd.append("sources", JSON.stringify(sources));
+      fd.append("share", share ? "true" : "false");
+      for (var f = 0; f < files.length; f++) fd.append("pdf", files[f]);
+      opts.body = fd;
+    } else {
+      opts.headers = {"Content-Type": "application/json"};
+      opts.body = JSON.stringify({document: doc.value, sources: sources, share: share});
+    }
+    ev("ct_check_submitted", {n_sources: sources.length + files.length, has_pdf: files.length > 0, share: share,
+      doc_chars: doc.value.length, prefilled_example: doc.value.trim() === EXAMPLE_DOC.trim(), preset: PRESET});
+    btn.disabled = true;
+    status.textContent = "Checking… this takes 20–60 seconds.";
+    fetch(API + "/api/check", opts).then(function (r) {
+      return r.json().then(function (j) { return {ok: r.ok, code: r.status, body: j}; },
+                          function () { return {ok: false, code: r.status, body: {}}; });
+    }, function (err) {
+      return {network: true, err: err};
+    }).then(function (r) {
+      if (r.network) {
+        fail("network", "The checker could not be reached just now. Try again in a minute, or order a done-for-you audit on the ClaimTrace page.");
+        return;
+      }
+      if (!r.ok) { fail(r.code, r.body.error || "The check failed. Please try again."); return; }
+      status.textContent = "";
+      render(r.body);
+      var s = r.body.summary || {};
+      ev("ct_check_completed", {total: s.total, supported: s.supported, mismatch: s.mismatch,
+        unsupported: s.unsupported, latency_s: r.body.latency_s});
+      if (r.body.id) ev("ct_report_shared");
+    }).catch(function (err) {
+      fail("client", "Something went wrong showing the result: " + ((err && err.message) || "unknown error"));
+    }).then(function () { btn.disabled = false; });
+  });
+})();
+</script>  </section>
 </article>
 </main>
 <footer>

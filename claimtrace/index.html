@@ -33,8 +33,9 @@
   <h1>Check every number in an AI-written document against its source.</h1>
   <p class="lede">Paste the document and up to three sources. ClaimTrace finds every number, checks it against the sources, and quotes the exact sentence each verdict rests on — so you can see which figures hold up before you publish.</p>
 
+<div class="ct-checker" data-placement="claimtrace">
   <p class="small"><button type="button" id="ct-example">Load an example</button> fills in a short demo draft and its source (one number is deliberately wrong), so you can see a ledger in 30 seconds.</p>
-  <form id="ct-form" class="check-form ct-form">
+  <form id="ct-form" class="check-form ct-form" novalidate>
     <label for="ct-document">Document (AI-written text)</label>
     <textarea id="ct-document" name="document" rows="10" maxlength="30000" required placeholder="Paste the text whose numbers you want checked (up to 30,000 characters)."></textarea>
     <p class="small"><span id="ct-count">0</span> / 30,000 characters</p>
@@ -70,49 +71,22 @@
   <noscript><p class="meta">The checker needs JavaScript.</p></noscript>
   <p id="ct-status" class="meta" aria-live="polite"></p>
   <section id="ct-result" class="check-result ct-result" aria-live="polite" hidden></section>
-
-  <p class="small">Measured end to end on the live engine (check-v3), 2026-11-24, on 31 frozen held-out real government-statistics claims: 16 of 18 correct numbers marked supported and no correct number called a mismatch. Of 13 wrong numbers, 5 were marked mismatch, 5 unsupported (flagged for a human look) and 3 missed: passed as supported (a wrong table column, a wrong date, a claimed new low that was really a tie) or not extracted (a streak claim with no number in it). Our earlier 94% figure measured only the checking step with the exact evidence handed to it; the whole pipeline is weaker, and this is the number that counts. Small sample. Not a guarantee.</p>
-  <p class="small">Per-case results: <a href="/guides/claimbench/">ClaimBench</a>.</p>
-  <p class="small"><strong>Data:</strong> Not stored unless you choose to share. Shared reports deleted after 30 days. Don't paste personal data.</p>
-
-  <section id="agents" class="ct-agents">
-    <h2>Use it from your agent, terminal or CI</h2>
-    <p>Same checker, same free allowance, no key needed to start.</p>
-    <ul class="listing">
-      <li><strong>Remote MCP server:</strong> <code>https://claimtrace-api.fly.dev/mcp</code> — one tool, <code>check_numbers</code>. Claude Code: <code>claude mcp add --transport http claimtrace https://claimtrace-api.fly.dev/mcp</code></li>
-      <li><strong>CLI and local MCP (MIT):</strong> <code>uvx --from git+https://github.com/mayamate26/claimtrace claimtrace check report.md --source https://…</code></li>
-      <li><strong>GitHub Action:</strong> comments a claim ledger on pull requests that change docs. <a href="https://github.com/mayamate26/claimtrace">Source and setup on GitHub →</a></li>
-      <li><strong>Listed in:</strong> the official MCP registry (<code>com.mayamate/claimtrace</code>), <a href="https://glama.ai/mcp/servers/mayamate26/claimtrace">Glama</a>, <a href="https://mcpservers.org/servers/mayamate26/claimtrace">mcpservers.org</a>, <a href="https://mcptry.com/servers/com.mayamate/claimtrace">mcptry</a>.</li>
-    </ul>
-  </section>
-
-  <section id="pricing" class="ct-pricing">
-    <h2>Pricing</h2>
-    <ul class="listing">
-      <li><strong>Free:</strong> 10 claims/day. No signup.</li>
-      <li><strong>API credits:</strong> from $10, $0.02/claim. <a href="https://buy.stripe.com/cNi7sL8sV027eOO8p4grS05">Buy credits →</a></li>
-      <li><strong>Done-for-you audit:</strong> $149/document, ledger in 24h. <a href="https://buy.stripe.com/eVqfZh5gJ5mr4aacFkgrS04">Order an audit →</a></li>
-    </ul>
-  </section>
-</article>
+</div>
 <script>
 (function () {
   var CFG = {"api_base": "https://claimtrace-api.fly.dev", "audit_url": "https://buy.stripe.com/eVqfZh5gJ5mr4aacFkgrS04", "credits_url": "https://buy.stripe.com/cNi7sL8sV027eOO8p4grS05"};
   var API = CFG.api_base;
-  var form = document.getElementById("ct-form");
-  var out = document.getElementById("ct-result");
-  var status = document.getElementById("ct-status");
-  var btn = document.getElementById("ct-submit");
-  var doc = document.getElementById("ct-document");
-  var count = document.getElementById("ct-count");
-  doc.addEventListener("input", function () { count.textContent = doc.value.length.toLocaleString(); });
-  [1, 2, 3].forEach(function (i) {
-    var kind = document.getElementById("ct-kind-" + i), val = document.getElementById("ct-value-" + i);
-    kind.addEventListener("change", function () {
-      val.rows = kind.value === "text" ? 6 : 2;
-      val.placeholder = kind.value === "text" ? "Paste the source text" : "https://…";
-    });
-  });
+  var P = "ct", PLACEMENT = "claimtrace", COMPACT = false;
+  var EXAMPLE_DOC = "Acme Analytics had a strong third quarter. Revenue rose to $48.2 million, gross margin held at 61%, and the company now serves 1,430 customers.";
+  var EXAMPLE_SRC = "Acme Analytics (a fictional company used for this demo) - Q3 2026 results. Revenue was $48.2 million, up from $43.0 million in Q3 2025. Gross margin was 61%, unchanged from the prior quarter. The company ended the quarter with 1,340 customers.";
+  function $(id) { return document.getElementById(P + "-" + id); }
+  function ev(name, params) {
+    if (typeof window.gtag !== "function") return;
+    var q = {placement: PLACEMENT, page_path: location.pathname, transport_type: "beacon"};
+    for (var k in params || {}) q[k] = params[k];
+    window.gtag("event", name, q);
+  }
+  var form = $("form"), out = $("result"), status = $("status"), btn = $("submit"), doc = $("document");
 
   function el(tag, text, attrs) {
     var n = document.createElement(tag);
@@ -120,24 +94,72 @@
     for (var k in attrs || {}) n.setAttribute(k, attrs[k]);
     return n;
   }
-  var EXAMPLE_DOC = "Acme Analytics had a strong third quarter. Revenue grew 21% year over year to $48.2 million, gross margin held at 61%, and the company now serves 1,340 customers.";
-  var EXAMPLE_SRC = "Acme Analytics (a fictional company used for this demo) - Q3 2026 results. Revenue was $48.2 million, up 12% from $43.0 million in Q3 2025. Gross margin was 61%, unchanged from the prior quarter. The company ended the quarter with 1,340 customers.";
-  document.getElementById("ct-example").addEventListener("click", function () {
-    doc.value = EXAMPLE_DOC; count.textContent = doc.value.length.toLocaleString();
-    var k = document.getElementById("ct-kind-1"), v = document.getElementById("ct-value-1");
-    k.value = "text"; v.rows = 6; v.placeholder = "Paste the source text"; v.value = EXAMPLE_SRC;
-    status.textContent = "Example loaded. Press \u201cCheck the numbers\u201d.";
-  });
+
+  if (COMPACT) {
+    $("clear").addEventListener("click", function () {
+      doc.value = ""; $("source").value = ""; status.textContent = ""; doc.focus();
+      ev("ct_clear_clicked");
+    });
+  } else {
+    var count = $("count");
+    var setCount = function () { count.textContent = doc.value.length.toLocaleString(); };
+    doc.addEventListener("input", setCount);
+    var setKind = function (i, k) {
+      var val = $("value-" + i);
+      if (k) $("kind-" + i).value = k;
+      var text = $("kind-" + i).value === "text";
+      val.rows = text ? 6 : 2;
+      val.placeholder = text ? "Paste the source text" : "https://…";
+    };
+    [1, 2, 3].forEach(function (i) {
+      $("kind-" + i).addEventListener("change", function () { setKind(i); });
+    });
+    $("example").addEventListener("click", function () {
+      doc.value = EXAMPLE_DOC; setCount();
+      setKind(1, "text"); $("value-1").value = EXAMPLE_SRC;
+      status.textContent = "Example loaded. Press “Check the numbers”.";
+      ev("ct_example_loaded");
+    });
+  }
+  var PRESET = "";
+  // ?preset=<name>: load a published finding from /claimtrace/presets/<name>.json so it can be re-run in one click.
+  (function () {
+    var name = new URLSearchParams(location.search).get("preset");
+    if (!name || !/^[a-z0-9-]{1,60}$/.test(name)) return;
+    var failed = function () {
+      status.textContent = "That example could not be loaded.";
+      ev("ct_preset_error", {preset: name});
+    };
+    fetch("/claimtrace/presets/" + name + ".json").then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    }).then(function (p) {
+      var srcs = p && p.sources;
+      if (typeof p.document !== "string" || !Array.isArray(srcs) || srcs.length > 3) throw new Error("bad preset");
+      doc.value = p.document; setCount();
+      [1, 2, 3].forEach(function (i) {
+        var s = srcs[i - 1] || {};
+        setKind(i, s.kind === "text" ? "text" : "url");
+        $("value-" + i).value = typeof s.value === "string" ? s.value : "";
+      });
+      PRESET = name;
+      status.textContent = "Loaded: " + (p.title || name) + ". Press “Check the numbers” to re-run it live.";
+      form.scrollIntoView({behavior: "smooth", block: "start"});
+      btn.focus({preventScroll: true});
+      ev("ct_preset_loaded", {preset: name});
+    }).catch(failed);
+  })();
   var CLS = {SUPPORTED: "ct-ok", MISMATCH: "ct-bad", UNSUPPORTED: "ct-warn", ERROR: "ct-warn"};
 
-  function copyRow(labelText, value) {
+  function copyRow(labelText, value, which) {
     var wrap = el("div", "", {"class": "ct-copy"});
-    var id = "ct-copy-" + Math.random().toString(36).slice(2);
+    var id = P + "-copy-" + Math.random().toString(36).slice(2);
     wrap.appendChild(el("label", labelText, {"for": id}));
     var input = el("input", "", {id: id, type: "text", readonly: "readonly"});
     input.value = value;
     var b = el("button", "Copy", {type: "button"});
     b.addEventListener("click", function () {
+      ev("ct_copy_clicked", {which: which});
       input.select();
       (navigator.clipboard ? navigator.clipboard.writeText(value) : Promise.reject()).then(
         function () { b.textContent = "Copied"; }, function () { document.execCommand("copy"); b.textContent = "Copied"; });
@@ -182,32 +204,48 @@
     }
     if (res.id) {
       out.appendChild(el("h2", "Share"));
-      out.appendChild(copyRow("Report link", res.share_url));
+      out.appendChild(copyRow("Report link", res.share_url, "link"));
       var alt = "ClaimTrace: " + s.supported + "/" + s.total + " numbers supported";
-      out.appendChild(copyRow("Badge embed", '<a href="' + res.share_url + '"><img src="' + res.badge_url + '" alt="' + alt + '"></a>'));
+      out.appendChild(copyRow("Badge embed", '\x3ca href="' + res.share_url + '">\x3cimg src="' + res.badge_url + '" alt="' + alt + '">\x3c/a>', "badge"));
       out.appendChild(el("img", "", {src: res.badge_url, alt: alt}));
     }
     var lim = res.limits_remaining || {};
     out.appendChild(el("p", "Model " + res.model + " · " + (res.latency_s || 0) + " s · " +
       (lim.claims_today !== undefined ? lim.claims_today + " free claims left today" : ""), {"class": "small"}));
     var cta = el("p", "", {"class": "cta"});
-    cta.appendChild(el("a", "Want every number in a full document checked and reviewed? $149, ledger back in 24h", {href: "#pricing"}));
+    cta.appendChild(el("a", "Want every number in a full document checked and reviewed? $149, ledger back in 24h", {href: "/claimtrace/#pricing"}));
     out.appendChild(cta);
     out.hidden = false;
   }
 
+  function invalid(reason, message) {
+    status.textContent = message;
+    ev("ct_validation_error", {reason: reason});
+  }
+
+  function fail(httpStatus, message) {
+    status.textContent = message;
+    ev("ct_check_error", {http_status: httpStatus, error: String(message || "").slice(0, 100)});
+  }
+
   form.addEventListener("submit", function (e) {
     e.preventDefault();
-    var sources = [];
-    [1, 2, 3].forEach(function (i) {
-      var v = document.getElementById("ct-value-" + i).value.trim();
-      if (v) sources.push({kind: document.getElementById("ct-kind-" + i).value, value: v});
-    });
-    var files = document.getElementById("ct-pdf").files;
-    if (files.length > 2) { status.textContent = "Upload at most 2 PDFs."; return; }
-    if (sources.length + files.length === 0) { status.textContent = "Add at least one source."; return; }
-    if (sources.length + files.length > 3) { status.textContent = "At most 3 sources in total."; return; }
-    var share = document.getElementById("ct-share").checked;
+    var sources = [], files = [];
+    if (COMPACT) {
+      var v = $("source").value.trim();
+      if (v) sources.push({kind: /^https?:\/\//i.test(v) ? "url" : "text", value: v});
+    } else {
+      [1, 2, 3].forEach(function (i) {
+        var v = $("value-" + i).value.trim();
+        if (v) sources.push({kind: $("kind-" + i).value, value: v});
+      });
+      files = $("pdf").files;
+    }
+    if (!doc.value.trim()) { invalid("empty_doc", "Paste the document whose numbers you want checked."); return; }
+    if (files.length > 2) { invalid("too_many_pdfs", "Upload at most 2 PDFs."); return; }
+    if (sources.length + files.length === 0) { invalid("no_source", "Add at least one source."); return; }
+    if (sources.length + files.length > 3) { invalid("too_many_sources", "At most 3 sources in total."); return; }
+    var share = $("share").checked;
     var opts = {method: "POST"};
     if (files.length) {
       var fd = new FormData();
@@ -220,20 +258,57 @@
       opts.headers = {"Content-Type": "application/json"};
       opts.body = JSON.stringify({document: doc.value, sources: sources, share: share});
     }
+    ev("ct_check_submitted", {n_sources: sources.length + files.length, has_pdf: files.length > 0, share: share,
+      doc_chars: doc.value.length, prefilled_example: doc.value.trim() === EXAMPLE_DOC.trim(), preset: PRESET});
     btn.disabled = true;
     status.textContent = "Checking… this takes 20–60 seconds.";
     fetch(API + "/api/check", opts).then(function (r) {
-      return r.json().then(function (j) { return {ok: r.ok, body: j}; }, function () { return {ok: false, body: {}}; });
+      return r.json().then(function (j) { return {ok: r.ok, code: r.status, body: j}; },
+                          function () { return {ok: false, code: r.status, body: {}}; });
+    }, function (err) {
+      return {network: true, err: err};
     }).then(function (r) {
-      if (!r.ok) { status.textContent = r.body.error || "The check failed. Please try again."; return; }
+      if (r.network) {
+        fail("network", "The checker could not be reached just now. Try again in a minute, or order a done-for-you audit on the ClaimTrace page.");
+        return;
+      }
+      if (!r.ok) { fail(r.code, r.body.error || "The check failed. Please try again."); return; }
       status.textContent = "";
       render(r.body);
-    }).catch(function () {
-      status.textContent = "The checker could not be reached just now. Try again in a minute, or order a done-for-you audit below.";
+      var s = r.body.summary || {};
+      ev("ct_check_completed", {total: s.total, supported: s.supported, mismatch: s.mismatch,
+        unsupported: s.unsupported, latency_s: r.body.latency_s});
+      if (r.body.id) ev("ct_report_shared");
+    }).catch(function (err) {
+      fail("client", "Something went wrong showing the result: " + ((err && err.message) || "unknown error"));
     }).then(function () { btn.disabled = false; });
   });
 })();
 </script>
+  <p class="small">Measured end to end on the live engine (check-v3), 2026-11-24, on 31 frozen held-out real government-statistics claims: 16 of 18 correct numbers marked supported and no correct number called a mismatch. Of 13 wrong numbers, 5 were marked mismatch, 5 unsupported (flagged for a human look) and 3 missed: passed as supported (a wrong table column, a wrong date, a claimed new low that was really a tie) or not extracted (a streak claim with no number in it). Our earlier 94% figure measured only the checking step with the exact evidence handed to it; the whole pipeline is weaker, and this is the number that counts. Small sample. Not a guarantee.</p>
+  <p class="small">Per-case results: <a href="/guides/claimbench/">ClaimBench</a>.</p>
+  <p class="small"><strong>Data:</strong> Not stored unless you choose to share. Shared reports deleted after 30 days. Don't paste personal data.</p>
+
+  <section id="agents" class="ct-agents">
+    <h2>Use it from your agent, terminal or CI</h2>
+    <p>Same checker, same free allowance, no key needed to start.</p>
+    <ul class="listing">
+      <li><strong>Remote MCP server:</strong> <code>https://claimtrace-api.fly.dev/mcp</code> — one tool, <code>check_numbers</code>. Claude Code: <code>claude mcp add --transport http claimtrace https://claimtrace-api.fly.dev/mcp</code></li>
+      <li><strong>CLI and local MCP (MIT):</strong> <code>uvx --from git+https://github.com/mayamate26/claimtrace claimtrace check report.md --source https://…</code></li>
+      <li><strong>GitHub Action:</strong> comments a claim ledger on pull requests that change docs. <a href="https://github.com/mayamate26/claimtrace">Source and setup on GitHub →</a></li>
+      <li><strong>Listed in:</strong> the official MCP registry (<code>com.mayamate/claimtrace</code>), <a href="https://glama.ai/mcp/servers/mayamate26/claimtrace">Glama</a>, <a href="https://mcpservers.org/servers/mayamate26/claimtrace">mcpservers.org</a>, <a href="https://mcptry.com/servers/com.mayamate/claimtrace">mcptry</a>.</li>
+    </ul>
+  </section>
+
+  <section id="pricing" class="ct-pricing">
+    <h2>Pricing</h2>
+    <ul class="listing">
+      <li><strong>Free:</strong> 10 claims/day. No signup.</li>
+      <li><strong>API credits:</strong> from $10, $0.02/claim. <a href="https://buy.stripe.com/cNi7sL8sV027eOO8p4grS05">Buy credits →</a></li>
+      <li><strong>Done-for-you audit:</strong> $149/document, ledger in 24h. <a href="https://buy.stripe.com/eVqfZh5gJ5mr4aacFkgrS04">Order an audit →</a></li>
+    </ul>
+  </section>
+</article>
 </main>
 <footer>
   <p>Maya · AI visibility audits and the AI Recommendation Index · maya@mayamate.com</p>
